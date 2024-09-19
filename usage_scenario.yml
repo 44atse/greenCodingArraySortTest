@@ -1,0 +1,47 @@
+---
+name: ArraySortTest
+author: Matse
+version: 1
+description: ArraySortTest
+
+services:
+  Small_load_Container:
+    image: openjdk:11-jdk-alpine
+    ports:
+      - 9000:80
+    setup-commands:
+      - whoami
+      - javac /tmp/repo/SortTest.java
+  High_load_Container:
+    image: openjdk:11-jdk-alpine
+    ports:
+      - 9001:80
+    setup-commands:
+      - javac /tmp/repo/SortTest.java
+
+flow:
+  - name: Sort 10 Million Elements
+    container: Small_load_Container
+    commands:
+      - type: console
+        command: java /tmp/repo/SortTest run -n 10000000
+        detach: true
+        note: Sorting array of 10 million elements detached
+  - name: Sort 100 Million Elements
+    container: High_load_Container
+    commands:
+      - type: console
+        command: java /tmp/repo/SortTest run -n 100000000
+        note: Sorting array of 100 million elements sync
+  - name: Cleanup small load
+    container: Small_load_Container
+    commands:
+      - type: console
+        command: java /tmp/repo/SortTest cleanup
+        note: Doing Cleanup on Small_load_Container
+  - name: Cleanup high load
+    container: High_load_Container
+    commands:
+      - type: console
+        command: java /tmp/repo/SortTest cleanup
+        note: Doing Cleanup on High_load_Container
